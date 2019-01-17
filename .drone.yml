@@ -1,0 +1,31 @@
+---
+kind: pipeline
+name: default
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: quay.io/jonnrb/webauth
+  image: plugins/docker
+  settings:
+    password:
+      from_secret: quay_password
+    registry: quay.io
+    repo: quay.io/jonnrb/webauth
+    target: webauth
+    username:
+      from_secret: quay_username
+
+- name: notify-slack
+  image: plugins/slack
+  settings:
+    webhook:
+      from_secret: slack_webhook
+  when:
+    status:
+    - success
+    - failure
+
+...
