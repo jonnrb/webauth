@@ -38,8 +38,21 @@ func extractTargetURL(r *http.Request) string {
 	// Always use HTTPS. The rest of the server assumes HTTPS is used.
 	u.Scheme = "https"
 
-	// This header will be correct when requests come from traefik.
-	u.Host = r.Header.Get("X-Forwarded-Host")
+	u.Host = pickTargetHost(r)
 
 	return u.String()
+}
+
+func pickTargetHost(r *http.Request) string {
+	// This header will be correct when requests come from traefik.
+	if h := r.Header.Get("X-Forwarded-Host"); h != "" {
+		return h
+	}
+
+	// Envoy just proxies the Host header.
+	if h := r.Host; h != "" {
+		return h
+	}
+
+	return ""
 }
