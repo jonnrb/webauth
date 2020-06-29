@@ -6,9 +6,10 @@ import (
 )
 
 type EphemeralRecipe struct {
-	Name     string
-	Domain   string
-	Duration time.Duration
+	Name           string
+	Domain         string
+	Duration       time.Duration
+	AllowRedirects bool
 }
 
 func (r *EphemeralRecipe) Give(w http.ResponseWriter, value string) {
@@ -19,6 +20,13 @@ func (r *EphemeralRecipe) Give(w http.ResponseWriter, value string) {
 		expires = time.Now().Add(r.Duration)
 	}
 
+	var sameSite http.SameSite
+	if r.AllowRedirects {
+		sameSite = http.SameSiteLaxMode
+	} else {
+		sameSite = http.SameSiteStrictMode
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     r.Name,
 		Value:    value,
@@ -26,6 +34,7 @@ func (r *EphemeralRecipe) Give(w http.ResponseWriter, value string) {
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
+		SameSite: sameSite,
 		Expires:  expires,
 	})
 }

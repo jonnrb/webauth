@@ -70,9 +70,10 @@ func newHandler() *Handler {
 	oauthAuthn := &authn.OauthAuthenticator{
 		Backend: newOauthConfig(),
 		CSRFCookieRecipe: &cookie.EphemeralRecipe{
-			Name:     *cookieName + "_csrf",
-			Domain:   *cookieDomain,
-			Duration: *csrfExpiry,
+			Name:           *cookieName + "_csrf",
+			Domain:         *cookieDomain,
+			Duration:       *csrfExpiry,
+			AllowRedirects: true,
 		},
 		Nonce: util.RandomNonce,
 	}
