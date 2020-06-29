@@ -1,6 +1,8 @@
 package main
 
 import (
+	"html/template"
+	"log"
 	"net/http"
 
 	"go.jonnrb.io/webauth/authn"
@@ -63,6 +65,22 @@ func (h *Handler) handleAuthorized(w http.ResponseWriter, r *http.Request, u typ
 		w.Header().Set("X-Forwarded-User", u.Email)
 		w.WriteHeader(http.StatusOK)
 	} else {
-		http.Redirect(w, r, targetURL, http.StatusFound)
+		jsRedirect(w, targetURL)
+	}
+}
+
+var jsRedirectTmpl = template.Must(template.New("jsRedirect").Parse(
+	`<!doctype html>
+<html lang="en"><meta charset="utf-8">
+<title>Logged in</title>
+<script>window.location.href = "{{.}}";</script>
+<h1>Logged in</h1>
+<p>Continue to <a href="{{.}}">{{.}}</a>.
+`))
+
+func jsRedirect(w http.ResponseWriter, url string) {
+	err := jsRedirectTmpl.Execute(w, url)
+	if err != nil {
+		log.Printf("error printing template redirecting to %q: %v", url, err)
 	}
 }
