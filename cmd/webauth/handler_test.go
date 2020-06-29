@@ -113,22 +113,3 @@ func TestHandler_ServeHTTP_unauthorized(t *testing.T) {
 		t.Errorf("unexpected response status %q", res.Status)
 	}
 }
-
-func TestHandler_ServeHTTP_unauthorized(t *testing.T) {
-	h := Handler{
-		EUCBox:        newTestingEUCBox(),
-		Authenticator: &testutil.FakeAuthenticator{Error: authn.ErrNoCredentials},
-		Login:         testutil.ErrorLogin{t},
-		Authorizer:    testutil.FakeAuthorizer{Email: "bob@example.test"},
-	}
-	r := httptest.NewRequest("get", "https://example.test/", nil)
-	r.AddCookie(&http.Cookie{Name: "chocolate_chip", Value: "guest"})
-	var w httptest.ResponseRecorder
-
-	h.ServeHTTP(&w, r)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusForbidden {
-		t.Errorf("unexpected response status %q", res.Status)
-	}
-}

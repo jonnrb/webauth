@@ -43,6 +43,12 @@ func (h *Handler) getEUC(w http.ResponseWriter, r *http.Request) (u types.User, 
 	switch err {
 	case authn.ErrNoCredentials:
 		u, targetURL, err = h.EUCBox.GetEUC(r)
+	case authn.ErrBadCallbackState:
+		var eucBoxErr error
+		u, targetURL, eucBoxErr = h.EUCBox.GetEUC(r)
+		if alreadyHasEUC := eucBoxErr == nil; alreadyHasEUC {
+			err = nil
+		}
 	case nil:
 		// Only give a EUC token if the authenticator has a EUC (i.e. don't give
 		// a EUC if the EUCBox already contains a EUC).

@@ -22,14 +22,18 @@ type OauthConfig interface {
 	GetUser(ctx context.Context, token *oauth2.Token) (types.User, error)
 }
 
-var ErrNoCredentials = errors.New(http.StatusUnauthorized, "no credentials", nil)
+var (
+	ErrNoCredentials    = errors.New(http.StatusUnauthorized, "no credentials", nil)
+	ErrBadCallbackState = errors.New(http.StatusBadRequest, "invalid callback state", nil)
+)
 
 var errBadRequest = errors.New(http.StatusBadRequest, "bad request", nil)
 
 // Gets credentials from an oauth2 callback.
 func (a *OauthAuthenticator) GetEUC(r *http.Request) (u types.User, targetURL string, err error) {
-	if !inCallback(r) {
-		err = ErrNoCredentials
+	var ok bool
+	ok, err = a.inCallback(r)
+	if !ok {
 		return
 	}
 

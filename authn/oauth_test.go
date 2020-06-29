@@ -35,7 +35,9 @@ func TestOauthAuthenticator_GetEUC(t *testing.T) {
 }
 
 func TestOauthAuthenticator_GetEUC_notInCallback(t *testing.T) {
-	a := OauthAuthenticator{}
+	a := OauthAuthenticator{
+		CSRFCookieRecipe: &cookie.EphemeralRecipe{Name: "chocolate_chip"},
+	}
 	r := httptest.NewRequest("get", "https://example.test/", nil)
 
 	_, _, err := a.GetEUC(r)

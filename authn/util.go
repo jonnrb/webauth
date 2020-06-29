@@ -8,8 +8,28 @@ import (
 	"go.jonnrb.io/webauth/errors"
 )
 
-func inCallback(r *http.Request) bool {
-	return r.URL.Query().Get("state") != "" && r.URL.Query().Get("code") != ""
+func (a *OauthAuthenticator) inCallback(r *http.Request) (ok bool, err error) {
+	hasSomeParams, hasAllParams := hasURLParams(r)
+	_, hasCSRFCookie := a.CSRFCookieRecipe.Get(r)
+
+	partiallyOK := hasCSRFCookie || hasSomeParams
+	ok = hasCSRFCookie && hasAllParams
+
+	switch {
+	case ok:
+		err = nil
+	case partiallyOK:
+		err = ErrBadCallbackState
+	default:
+		err = ErrNoCredentials
+	}
+	return
+}
+
+func hasURLParams(r *http.Request) (hasSome, hasAll bool) {
+	hasSome = r.URL.Query().Get("state") != "" || r.URL.Query().Get("code") != ""
+	hasAll = r.URL.Query().Get("state") != "" && r.URL.Query().Get("code") != ""
+	return
 }
 
 func (a *OauthAuthenticator) extractAndVerifyTargetURL(r *http.Request) (string, error) {
