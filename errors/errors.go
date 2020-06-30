@@ -35,6 +35,10 @@ func WithCause(reason string, cause error) (err HTTPError) {
 	return
 }
 
+func (e HTTPError) Unwrap() error {
+	return e.Inner
+}
+
 func (e HTTPError) Error() string {
 	var b strings.Builder
 	if e.Status != 0 {

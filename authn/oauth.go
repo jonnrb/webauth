@@ -27,13 +27,10 @@ var (
 	ErrBadCallbackState = errors.New(http.StatusBadRequest, "invalid callback state", nil)
 )
 
-var errBadRequest = errors.New(http.StatusBadRequest, "bad request", nil)
-
 // Gets credentials from an oauth2 callback.
 func (a *OauthAuthenticator) GetEUC(r *http.Request) (u types.User, targetURL string, err error) {
-	var ok bool
-	ok, err = a.inCallback(r)
-	if !ok {
+	if !a.inCallback(r) {
+		err = ErrNoCredentials
 		return
 	}
 

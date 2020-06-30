@@ -55,10 +55,8 @@ func TestOauthAuthenticator_GetEUC_noCSRFToken(t *testing.T) {
 
 	_, _, err := a.GetEUC(r)
 
-	if err == nil {
-		t.Error("missing a CSRF token should be an error")
-	} else if err == ErrNoCredentials {
-		t.Error("missing a CSRF token should be an error different from ErrNoCredentials")
+	if err != ErrNoCredentials {
+		t.Fatal(err)
 	}
 }
 

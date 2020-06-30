@@ -8,45 +8,31 @@ import (
 	"go.jonnrb.io/webauth/errors"
 )
 
-func (a *OauthAuthenticator) inCallback(r *http.Request) (ok bool, err error) {
-	hasSomeParams, hasAllParams := hasURLParams(r)
+func (a *OauthAuthenticator) inCallback(r *http.Request) bool {
 	_, hasCSRFCookie := a.CSRFCookieRecipe.Get(r)
-
-	partiallyOK := hasCSRFCookie || hasSomeParams
-	ok = hasCSRFCookie && hasAllParams
-
-	switch {
-	case ok:
-		err = nil
-	case partiallyOK:
-		err = ErrBadCallbackState
-	default:
-		err = ErrNoCredentials
-	}
-	return
+	return hasCSRFCookie && hasURLParams(r)
 }
 
-func hasURLParams(r *http.Request) (hasSome, hasAll bool) {
-	hasSome = r.URL.Query().Get("state") != "" || r.URL.Query().Get("code") != ""
-	hasAll = r.URL.Query().Get("state") != "" && r.URL.Query().Get("code") != ""
-	return
+func hasURLParams(r *http.Request) bool {
+	q := r.URL.Query()
+	return q.Get("state") != "" && q.Get("code") != ""
 }
 
 func (a *OauthAuthenticator) extractAndVerifyTargetURL(r *http.Request) (string, error) {
 	csrf, ok := a.CSRFCookieRecipe.Get(r)
 	if !ok {
-		return "", errors.WithCause("no csrf cookie", errBadRequest)
+		return "", errors.WithCause("no csrf cookie", ErrBadCallbackState)
 	}
 
 	state := r.URL.Query().Get("state")
 	statePair := strings.SplitN(state, ":", 2)
 	if len(statePair) != 2 {
-		return "", errors.WithCause(fmt.Sprintf("bad state param: %q", state), errBadRequest)
+		return "", errors.WithCause(fmt.Sprintf("bad state param: %q", state), ErrBadCallbackState)
 	}
 
 	nonce := statePair[0]
 	if nonce != csrf {
-		return "", errors.WithCause(fmt.Sprintf("bad nonce in state: nonce=%q csrf=%q", nonce, csrf), errBadRequest)
+		return "", errors.WithCause(fmt.Sprintf("bad nonce in state: nonce=%q csrf=%q", nonce, csrf), ErrBadCallbackState)
 	}
 
 	return statePair[1], nil
