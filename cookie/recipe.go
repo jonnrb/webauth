@@ -14,7 +14,7 @@ type EphemeralRecipe struct {
 
 func (r *EphemeralRecipe) Give(w http.ResponseWriter, value string) {
 	var expires time.Time
-	if value == "" {
+	if r.Duration == time.Duration(0) {
 		expires = time.Now().Add(-1 * time.Hour)
 	} else {
 		expires = time.Now().Add(r.Duration)
